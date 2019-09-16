@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Testy v0.0.1</title>
+    <script>
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+    <script>
+        if (window.module) module = window.module;
+    </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+    <div class="left-drawer">
+        <h3
+            style="font-family: 'Avenir'; font-weight:400; text-align:center; font-size:27px; letter-spacing: 2px;color: #ff9966; margin-top: 16px;">
+            testy</h3>
+        <div class="new-btn home">
+            <i class="material-icons" style="font-size: 30px;">home</i>
+        </div>
+        <ul class="nav-list">
+            <li class="nav-item settings">Settings</li>
+        </ul>
+    </div>
+    <div class="topbar">
+        <ul class="tools">
+            <li class="tool-item" draggable="true" ondragstart="drag(event)">Multiple Choice</li>
+            <li class="tool-item" draggable="true" ondragstart="drag(event)">Short Answer</li>
+            <li class="tool-item" draggable="true" ondragstart="drag(event)">Matching</li>
+            <li class="tool-item" draggable="true" ondragstart="drag(event)">True/False</li>
+        </ul>
+        <h3
+            style="font-family: 'Avenir'; font-weight:100; text-align:right; font-size:20px; letter-spacing:0px;color: #333; margin-right:30px;">
+            v0.0.1</h3>
+    </div>
+    <div class="container">
+        <h1 class="title" contenteditable="true" placeholder="Name of test"></h1>
+        <div class="section-parent">
+            <div class="sections" ondragover="allowDrop(event)" ondrop="drop(event)" ondragleave="removeActive(event)">
+                <p class="section-text" >Drag in a section from above</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron')
+        function allowDrop(ev) {
+                $('.sections').addClass('sections-active')
+                ev.preventDefault();
+            }
+
+            function removeActive(ev) {
+                $('.sections-active').removeClass('sections-active');
+                ev.preventDefault();
+            }
+
+            function drag(ev) {
+                ev.dataTransfer.setData("Type", $(ev.target).text());
+            }
+
+            function drop(ev) {
+                $('.sections-active').removeClass('sections-active');
+                ipcRenderer.send("create-section", ev.dataTransfer.getData("Type"))
+                ev.preventDefault();
+            }
+        $(document).ready(function () {
+            ipcRenderer.on("data", (event, data) => {
+                $('.section-div, .section-questions').remove()
+                $(".title").text(data.name)
+                for(var i = data.sections.length - 1; i >= 0; i--) {
+                    var n = data.sections[i].questions.length
+                    if (data.sections[i].type == "Multiple Choice") {
+                        $('.section-parent').prepend(`<div class="section-div"><h2><i class="material-icons extend">keyboard_arrow_down</i> ${data.sections[i].name}<i style="font-size:20px; color: #ccc;" class="number"> - ${n} questions</i></h2><p><i class="material-icons right more">more_vert</i> <i class="material-icons right delete">delete</i></p></div><div class="section-questions"><div class="question"><input type="text" class="input" name="question" placeholder="Question"></input><input type="text" class="half-input" name="correct" placeholder="Correct Answer"></input><input type="text" style="margin-right:0;" class="half-input" name="f1" placeholder="Fake Answer"></input><input type="text" class="half-input" name="f2" placeholder="Fake Answer"></input><input type="text" class="half-input" name="f3" style="margin-right:0;" placeholder="Fake Answer"></input></div></div>`).trigger("load", [data.sections[i].questions])
+                    }else if (data.sections[i].type == "Matching" || data.sections[i].type == "Short Answer" || data.sections[i].type == "True/False") {
+                        $('.section-parent').prepend(`<div class="section-div"><h2><i class="material-icons extend">keyboard_arrow_down</i> ${data.sections[i].name}<i style="font-size:20px; color: #ccc;" class="number"> - ${n} questions</i></h2><p><i class="material-icons right more">more_vert</i> <i class="material-icons right delete">delete</i></p></div><div class="section-questions"><div class="question"><input type="text" class="input" name="question" placeholder="Question"></input><input type="text" class="input" name="correct" placeholder="Correct Answer"></input></div></div>`).trigger("load", [data.sections[i].questions])
+                    }
+                 }
+            })
+
+            $('.section-parent').on("load", function(event, questions) {
+                for(var j = questions.length - 1; j >= 0; j--){
+                        var sQ = $('.section-questions').first()
+                        console.log(sQ, question)
+                            var question = questions[j]
+                            if (question.type === "Multiple Choice") {
+                                sQ.prepend(`<div class="question"><input type="text" class="input" name="question" placeholder="Question" value="${question.text}"></input><input type="text" class="half-input" name="correct" placeholder="Correct Answer" value="${question.correct}"></input><input type="text" style="margin-right:0;" class="half-input" name="f1" placeholder="Fake Answer" value="${question.f1}"></input><input type="text" class="half-input" name="f2" placeholder="Fake Answer" value="${question.f2}"></input><input type="text" class="half-input" name="f3" style="margin-right:0;" placeholder="Fake Answer" value="${question.f3}"></input><hr style="margin-bottom:20px;"></div>`)
+                            }else if (question.type == "Matching" || question.type == "Short Answer" || question.type == "True/False") {
+                                sQ.prepend(`<div class="question"><input type="text" class="input" name="question" placeholder="Question" value="${question.text}"></input><input type="text" class="input" name="correct" placeholder="Correct Answer" value="${question.correct}"></input><hr style="margin-bottom:20px;"></div>`)
+                            }
+                    }
+            })
+            $('.section-parent').on("input", '.section-questions > .question > input', function () {
+                if (this == $(this).parent().parent().children().last().children("input")[0]) {
+                    var index = $('.section-parent').find($(this).parent().parent()).index() - 1
+                    var type = $($($('.section-parent').children()[index]).children()[0]).text()
+                    console.log(type)
+                    if (type.includes("Multiple Choice")) {
+                        $(this).parent().parent().append(`<div class="question"><hr style="margin-bottom:20px;"><input type="text" class="input" name="question" placeholder="Question"></input><input type="text" class="half-input" name="correct" placeholder="Correct Answer"></input><input type="text" style="margin-right:0;" class="half-input" name="f1" placeholder="Fake Answer"></input><input type="text" class="half-input" name="f2" placeholder="Fake Answer"></input><input type="text" class="half-input" name="f3" style="margin-right:0;" placeholder="Fake Answer"></input></div>`)
+                    }else if (type.includes("Matching") || type.includes("Short Answer") || type.includes("True/False")) {
+                        $(this).parent().parent().append(`<div class="question"><hr style="margin-bottom:20px;"><input type="text" class="input" name="question" placeholder="Question"></input><input type="text" class="input" name="correct" placeholder="Correct Answer"></input></div>`)
+                    }
+                }
+                if ($(this).val() === "" && this == $(this).parent().children()[0]) {
+                    $(this).parent().remove()
+                }
+                var index = $('.section-parent').find($(this).parent().parent()).index(".section-questions")
+                var qIndex = $(this).parent().parent().find($(this).parent()).index()
+                var fields = [qIndex]
+                for(var i = 0; i < ($(this).parent().children("input").length) ; i++) {
+                    fields.push($($(this).parent().children("input")[i]).val())
+                }
+                var dataArr = [index, fields]
+                console.log(dataArr)
+                ipcRenderer.send("update-questions", dataArr)
+
+            })
+            $('.section-parent').on("click", ".section-div > p > .delete", function() {
+                var qIndex = $('.section-parent').find($(this).parent().parent()).index() + 1
+                var index = $('.section-parent').find($(this).parent().parent()).index('.section-div')
+                ipcRenderer.send("delete-section", index.toString())
+                $($('.section-parent').children()[qIndex]).remove()
+                $('.section-parent').find($(this).parent().parent()).remove()
+            })
+            $('.section-parent').on("click", ".section-div > h2 > .extend", function() {
+                var index = $('.section-parent').find($(this).parent().parent()).index() + 1
+                $($('.section-parent').children()[index]).slideToggle()
+                $(this).animate(
+                    { deg: "+=180" },
+                    {
+                    duration: 200,
+                    step: function(now) {
+                        $(this).css({ transform: 'rotate(' + now + 'deg)' });
+                    }
+                    }
+                );
+            })
+
+            var contents = $('.title').html();
+            $('.title').blur(function () {
+                if (contents != $(this).html()) {
+                    contents = $(this).html();
+                    if(contents == "") {
+                        $(this).html("Untitled")
+                        contents = "Untitled"
+                    }
+                    ipcRenderer.send("title-changed", contents)
+                }
+            });
+            $('.home').click(function () {
+                ipcRenderer.send("render-home", "true")
+            });
+        });
+    </script>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .left-drawer {
+            position: absolute;
+            width: 20%;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-right: solid 1px #ccc;
+        }
+
+        .topbar {
+            position: relative;
+            width: 100%;
+            padding: 4px 0px;
+            border-bottom: solid 1px #ccc;
+        }
+
+        .container {
+            background-color: #fafafa;
+            margin-left: 20%;
+            height: 100%;
+            padding-top: 30px;
+            overflow-y:auto;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .nav-item {
+            font-family: 'Avenir';
+            font-weight: 500;
+            text-align: left;
+            color: #ccc;
+            font-size: 18px;
+            padding: 7px 0;
+            margin: 20px 0;
+            padding-left: 25%;
+            letter-spacing: 1px;
+            border-left: 4px solid white;
+            cursor: pointer;
+            transition: .2s ease-in-out;
+        }
+        .tools {
+            list-style: none;
+            position: absolute;
+            left: 20%;
+            top:10px;
+        }
+        .tool-item {
+            display: inline;
+            font-family: 'Avenir';
+            font-weight: 500;
+            text-align: center;
+            margin-left: 30px;
+            color: #aaa;
+            font-size: 18px;
+            letter-spacing: 1px;
+            cursor: grab;
+            transition: .2s ease-in-out;
+        }
+        .tool-item:hover {
+            color: #000;
+        }
+        .tool-item:active {
+            cursor: grabbing;
+            cursor: -moz-grabbing;
+            cursor: -webkit-grabbing;
+        }
+
+        .active,
+        .nav-item:hover {
+            border-left: 4px solid #ff9966;
+            color: #ff9966;
+        }
+
+        .settings {
+            position: absolute;
+            bottom: 20px;
+        }
+
+        .new-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50px;
+            background: #ff9966;
+            background: linear-gradient(45deg, #ff9966 0%, #ff5e62 100%);
+            color: white;
+            font-family: 'Avenir';
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            letter-spacing: 1px;
+            box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            margin-left: -30px;
+            position: relative;
+            left: 50%;
+            margin-top: 55px;
+            margin-bottom: 40px;
+        }
+
+        .open-btn {
+            width: 150px;
+            height: 38px;
+            border-radius: 50px;
+            background: #ff9966;
+            background: linear-gradient(45deg, #ff9966 0%, #ff5e62 100%);
+            color: white;
+            font-family: 'Avenir';
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            letter-spacing: 1px;
+            box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            margin-left: -75px;
+            position: relative;
+            left: 50%;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-family: 'Avenir';
+            letter-spacing: 1px;
+            font-weight: bold;
+            font-size: 35px;
+            width: 50%;
+            border: 1px solid #fafafa;
+            padding-left: 10px;
+            transition: .2s ease-in-out;
+            margin-left: 30px;
+        }
+
+        .title:hover {
+            border: 1px dashed #333;
+        }
+
+        .back {
+            cursor: pointer;
+            font-size: 30px;
+        }
+
+        .question {
+            width: 100%;
+        }
+
+        .input {
+            width: calc(100% - 20px);
+            height: 40px;
+            font-size: 20px;
+            letter-spacing: 1px;
+            font-family: 'Avenir';
+            border: none;
+            box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .half-input {
+            width: calc(50% - 26px);
+            height: 40px;
+            font-size: 20px;
+            letter-spacing: 1px;
+            font-family: 'Avenir';
+            margin-right: 10px;
+            border: none;
+            box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .quarter-input {
+            width: calc(25% - 27px);
+            height: 40px;
+            font-size: 20px;
+            letter-spacing: 1px;
+            font-family: 'Avenir';
+            margin-left: 10px;
+            border: none;
+            box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        [contenteditable=true]:empty::before {
+            content: attr(placeholder);
+            color: #ccc;
+        }
+        .section-parent {
+            height: 100%;
+        }
+        .sections {
+            width: 90%;
+            height: 50%;
+            margin-left: -45%;
+            position: relative;
+            left: 50%;
+            border: 2px dashed #ccc;
+        }
+        .sections-active {
+            border: 2px dashed #ccc;
+            background-color: #f2f2f2;
+        }
+
+        .section-text {
+            color: #aaa;
+            text-align: center;
+            font-family: 'Avenir';
+            font-size: 20px;
+            padding-top: 5%;
+        }
+        .section-div {
+            width: 70%;
+            height:100px;
+            background-color:white;
+            box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            margin-bottom:20px;
+            justify-content: space-between;
+            padding:0 20px;
+            margin-left: -35%;
+            position: relative;
+            left:50%;
+        }
+        .section-div > h2 {
+            font-family: 'Avenir';
+            font-size:26px;
+            font-weight:400;
+        }
+        .right {
+            cursor: pointer;
+            font-size:27px;
+            color: #666;
+        }
+        .right:hover {
+            color: #000;
+        }
+        .extend {
+            cursor: pointer;
+        }
+        .section-questions {
+            width: 60%;
+            background-color: #fafafa;
+            margin-left: -30%;
+            position: relative;
+            left: 50%;
+            display: none;
+        }
+    </style>
+</body>
+
+</html>

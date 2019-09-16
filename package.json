@@ -1,0 +1,19 @@
+{
+  "name": "testy",
+  "version": "0.0.1",
+  "description": "an app to help teachers create tests",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager . Testy && cp icon.icns Testy-darwin-x64/Testy.app/Contents/Resources/electron.icns"
+  },
+  "author": "Zavier Miller",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^6.0.8",
+    "electron-packager": "^14.0.6"
+  },
+  "dependencies": {
+    "jspdf": "^1.5.3"
+  }
+}

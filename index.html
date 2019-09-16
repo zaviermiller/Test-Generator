@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Testy v0.0.1</title>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}
+    </script>
+    <script
+    src="https://code.jquery.com/jquery-3.4.1.js"
+    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+    crossorigin="anonymous"></script>
+    <script>if (window.module) module = window.module;</script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet">
+  </head>
+  <body>
+    <div class="left-drawer">
+      <h3 style="font-family: 'Avenir'; font-weight:400; text-align:center; font-size:27px; letter-spacing: 2px;color: #ff9966; margin-top: 16px;">testy</h3>
+      <div class="new-btn">
+          <i class="material-icons" style="font-size: 30px;">add</i>
+      </div>
+      <div class="open-btn">
+        Open .test
+      </div>
+      <ul class="nav-list">
+        <li class="nav-item active">Home</li>
+        <li class="nav-item">Tests</li>
+        <li class="nav-item settings">Settings</li>
+      </ul>
+    </div>
+    <div class="topbar">
+        <h3 style="font-family: 'Avenir'; font-weight:100; text-align:right; font-size:20px; letter-spacing:0px;color: #333; margin-right:30px;">v0.0.1</h3>
+    </div>
+    <div class="container">
+      <i class="recent-title">Recent Tests</i>
+      <ul class="recent-list"></ul>
+    </div>
+    <style>
+      body,html {
+        margin: 0;
+        padding:0;
+        height:100%;
+        overflow: hidden;
+      }
+      .left-drawer {
+        position: absolute;
+        width: 20%;
+        left:0;
+        top:0;
+        height:100%;
+        border-right:solid 1px #ccc;
+      }
+      .topbar {
+        position: relative;
+        width: 100%;
+        padding:4px 0px;
+        border-bottom:solid 1px #ccc;
+      }
+      .container {
+        background-color: #fafafa;
+        margin-left:20%;
+        height:100%;
+        overflow: auto;
+        padding-top:30px;
+      }
+      .new-btn {
+        width: 70px;
+        height:70px;
+        border-radius: 50px;
+        background: #ff9966;
+        background: linear-gradient(45deg, #ff9966 0%, #ff5e62 100%);
+        color:white;
+        font-family: 'Avenir';
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: 1px;
+        box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.15);
+        cursor: pointer;
+        margin-left:-30px;
+        position: relative;
+        left: 50%;
+        margin-top:55px;
+        margin-bottom: 40px;
+      }
+      .open-btn {
+        width: 150px;
+        height:38px;
+        border-radius: 50px;
+        background: #ff9966;
+        background: linear-gradient(45deg, #ff9966 0%, #ff5e62 100%);
+        color:white;
+        font-family: 'Avenir';
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: 1px;
+        box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.15);
+        cursor: pointer;
+        margin-left:-75px;
+        position: relative;
+        left: 50%;
+        margin-bottom: 20px;
+      }
+      .recent-title {
+        font-family: 'Avenir';
+        font-weight:100;
+        color: #999;
+        letter-spacing: 1px;
+        margin-left:18%;
+      }
+      .recent-list {
+        list-style: none;
+      }
+      .recent-item {
+        text-align: center;
+        font-family: 'Avenir';
+        font-size: 20px;
+        font-weight:400;
+        line-height: 100px;
+        color:black;
+        cursor:pointer;
+        width:70%;
+        height:100px;
+        background-color:white;
+        margin: 20px 0 20px 0;
+        margin-left: -35%;
+        position: relative;
+        left:50%;
+        box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.05);
+        top: 10px;
+        opacity: 0;
+        transition: .3s ease-in-out;
+      }
+      .recent-item:hover {
+        box-shadow: 0px 0px 14px 1px rgba(0,0,0,0.2);
+      }
+      .nav-list {
+        list-style: none;
+        padding:0;
+        margin-top:60px;
+      }
+      .nav-item {
+        font-family: 'Avenir';
+        font-weight:500;
+        text-align: left;
+        border-left:4px solid white;
+        color: #ccc;
+        font-size:18px;
+        padding: 7px 0;
+        margin: 20px 0;
+        padding-left:25%;
+        letter-spacing:1px;
+        cursor:pointer;
+        transition: .2s ease-in-out;
+      }
+      .active, .nav-item:hover {
+        border-left: 4px solid #ff9966;
+        color: #ff9966;
+      }
+      .settings {
+        position: absolute;
+        bottom: 20px;
+      }
+    </style>
+    <script>
+      const { ipcRenderer } = require('electron')
+      var recentList;
+      $(document).ready(function(){
+        $(".new-btn").click(function() {
+          ipcRenderer.send('create-test','true')
+        });
+
+        $(".open-btn").click(function() {
+          ipcRenderer.send('open-test','true')
+        });
+
+        ipcRenderer.on("recents", (event,recents) => {
+          recentList = recents;
+          $(".recent-list").empty()
+          for(let i = 0; i < recents.length; i++) {
+            $('.recent-list').append(`<li class="recent-item animate">${recents[i].name}</li>`)
+            setTimeout(function() {
+              $('.animate').animate({
+                top: "0",
+                opacity: 1
+              },500).removeClass("animate").delay(1000)
+            },200)
+          }
+        })
+        $(".recent-list").on("click", "li.recent-item", function(){
+          var test = recentList.find((item) => {
+            if (item.name == $(this).text()) {
+              return item;
+            }
+          })
+          ipcRenderer.send('open-recent', test)
+        });
+      })
+    </script>
+  </body>
+</html>

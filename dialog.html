@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}
+    </script>
+    <script
+    src="https://code.jquery.com/jquery-3.4.1.js"
+    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+    crossorigin="anonymous"></script>
+    <script>if (window.module) module = window.module;</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>New Test</title>
+    <input type="text"></input>
+    <button>Close</button>
+</head>
+<body>
+    <script>
+        const remote = require('electron').remote;
+        
+        $("button").click(function() {
+            var window = remote.getCurrentWindow();
+            window.close();
+        })
+        
+    </script>
+</body>
+</html>
